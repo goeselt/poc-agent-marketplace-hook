@@ -1,0 +1,6 @@
+{
+  "name": "hook-a",
+  "version": "0.1.0",
+  "description": "Depends on hook-b; sessionStart hook checks and provisions it.",
+  "author": { "name": "goeselt" }
+}
