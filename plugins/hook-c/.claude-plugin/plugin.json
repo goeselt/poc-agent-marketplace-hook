@@ -1,6 +1,6 @@
 {
   "name": "hook-c",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Leaf plugin with a SessionStart probe hook.",
   "author": { "name": "goeselt" }
 }
