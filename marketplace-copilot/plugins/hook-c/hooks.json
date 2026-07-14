@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "sessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "d=\"${POC_MARKER_DIR:-/tmp}\"; mkdir -p \"$d\"; { echo fired=yes; echo pwd=$PWD; env | cut -d= -f1 | sort | tr '\n' ' '; echo; env | grep -iE '^[A-Z_]*(plugin|root|home)[A-Z_]*=' ; echo ---stdin---; cat; } > \"$d/copilot-c.marker\" 2>&1"
+          }
+        ]
+      }
+    ]
+  }
+}

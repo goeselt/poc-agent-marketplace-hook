@@ -1,0 +1,6 @@
+{
+  "mcpServers": {
+    "poc-http-unreachable": { "type": "http", "url": "https://mcp.example.invalid/poc" },
+    "poc-stdio-missing": { "type": "stdio", "command": "poc-nonexistent-mcp-server" }
+  }
+}

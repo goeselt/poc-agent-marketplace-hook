@@ -1,0 +1,6 @@
+{
+  "name": "hook-mcp",
+  "version": "0.1.0",
+  "description": "Ships MCP servers for existence/health introspection tests.",
+  "author": { "name": "goeselt" }
+}

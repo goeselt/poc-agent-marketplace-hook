@@ -1,0 +1,7 @@
+{
+  "hooks": {
+    "sessionStart": [
+      { "hooks": [ { "type": "command", "command": "${COPILOT_PLUGIN_ROOT}/scripts/ensure-dep.sh" } ] }
+    ]
+  }
+}

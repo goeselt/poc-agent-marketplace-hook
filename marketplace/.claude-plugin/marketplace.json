@@ -1,0 +1,35 @@
+{
+  "name": "poc-hook",
+  "owner": {
+    "name": "goeselt"
+  },
+  "metadata": {
+    "description": "PoC: hook capabilities (dependencies, provisioning, updates)."
+  },
+  "plugins": [
+    {
+      "name": "hook-a",
+      "source": "./plugins/hook-a",
+      "description": "Depends on hook-b.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "hook-b",
+      "source": "./plugins/hook-b",
+      "description": "Depends on hook-c.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "hook-c",
+      "source": "./plugins/hook-c",
+      "description": "Leaf plugin, no dependencies.",
+      "version": "0.1.0"
+    },
+    {
+      "name": "hook-mcp",
+      "source": "./plugins/hook-mcp",
+      "description": "MCP + login verification via hook.",
+      "version": "0.1.0"
+    }
+  ]
+}
