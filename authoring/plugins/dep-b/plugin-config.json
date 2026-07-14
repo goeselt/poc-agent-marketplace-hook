@@ -1,0 +1,6 @@
+{
+  "name": "dep-b",
+  "version": "0.1.0",
+  "description": "Leaf plugin without dependencies.",
+  "author": { "name": "goeselt" }
+}

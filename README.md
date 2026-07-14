@@ -151,6 +151,53 @@ bump never reach git-source consumers (unlike directory sources, F8). A hook aut
 needs marketplace update + plugin update, and the detection diff is only as fresh as the last marketplace
 refresh (that step needs network).
 
+## Generator Spike -- plugin-config.json
+
+Tests the follow-up idea: author one `plugin-config.json` per plugin and **generate** the provider
+manifest plus the dependency hooks from it. JSON over YAML was a deliberate choice: dependencies are plain
+lists of objects, JSON needs no new parser (the tooling stays stdlib-only), and comments were YAML's only
+real advantage.
+
+Authoring layout ([authoring/](authoring/)), consumed by [src/generate.js](src/generate.js):
+
+```json
+{
+  "name": "dep-a",
+  "version": "0.1.0",
+  "description": "Depends on dep-b (own marketplace) and hook-c (external marketplace).",
+  "author": { "name": "goeselt" },
+  "dependencies": [
+    { "plugin": "dep-b" },
+    { "plugin": "hook-c", "marketplace": "poc-hook", "source": "goeselt/poc-agent-marketplace-hook#claude" }
+  ]
+}
+```
+
+The generator writes `.claude-plugin/plugin.json` (the config minus `dependencies`), a generated
+`scripts/ensure-deps.sh`, and **merges** a `SessionStart` entry into `hooks/hooks.json` -- authored hook
+entries are preserved (hooks are additive, so appending is safe).
+
+### S1 -- Verified end to end (hermetic)
+
+[scripts/verify-config-gen.sh](scripts/verify-config-gen.sh) asserts, offline and unauthenticated:
+
+- the generated marketplace passes `claude plugin validate --strict`;
+- the authored hook survives the merge and still fires;
+- **nested `claude plugin marketplace add` works from inside a hook** -- the generated hook registers the
+  external marketplace before installing from it (this was an open question; now answered);
+- both dependencies -- own-marketplace and external -- install in **one** session (direct dependencies
+  resolve immediately; only *transitive* chains still need one session per level, F5);
+- the external dependency's own hooks are active in the next session, and re-runs are clean no-ops.
+
+### S2 -- Modeling and testing external dependencies
+
+- **Model**: `{plugin, marketplace, source}` -- `marketplace` is the dependency's marketplace *name* (must
+  match its manifest), `source` is anything `plugin marketplace add` accepts; the git form
+  `<owner>/<repo>#<branch>` (G1) is the realistic production shape.
+- **Test**: keep the authored `source` in git form, and let the test rewrite it to a **local directory copy**
+  of the external marketplace (see the verify script). That keeps the E2E hermetic; G1 separately proves the
+  git form resolves.
+
 ## MCP Servers And Login Checks
 
 ### M1 -- MCP existence: both CLIs, machine-readable
@@ -200,12 +247,13 @@ probe. Verified offline via [hook-mcp](marketplace/plugins/hook-mcp/scripts/mcp-
 ## Reproduce
 
 ```bash
-scripts/verify-claude.sh   # hermetic: no auth, no network, isolated CLAUDE_CONFIG_DIR
+scripts/verify-claude.sh      # hermetic: F1, F3-F6, M1-M3 (handwritten hook fixtures)
+scripts/verify-config-gen.sh  # hermetic: S1 (generated dependency hooks, external marketplace)
 ```
 
-The script asserts F1, F3-F6, and M1-M3 and exits non-zero on any mismatch. F7 (context/blocking) needs one
-authenticated session each (`claude --plugin-dir <plugin> -p ...`); everything in the Copilot section needs
-an authenticated Copilot session and is documented above instead of scripted.
+Both run offline with no auth in an isolated `CLAUDE_CONFIG_DIR` and exit non-zero on any mismatch. F7
+(context/blocking) needs one authenticated session each (`claude --plugin-dir <plugin> -p ...`); everything
+in the Copilot section needs an authenticated Copilot session and is documented above instead of scripted.
 
 ## Open Questions
 
@@ -213,6 +261,6 @@ an authenticated Copilot session and is documented above instead of scripted.
   systematic look at `--resume`/`/clear` semantics (`source` values in F2) might open one.
 - **Copilot enforcement:** no blocking or context mechanism found via exit codes/stdout; if a decision
   protocol (JSON output) exists, it is undocumented -- revisit on newer CLI versions.
-- **External-marketplace dependencies:** installing a dependency from a *different* marketplace requires that
-  marketplace to be registered first; whether `plugin marketplace add <url>` also works nested from a hook is
-  untested (expected yes -- same config-write class as `plugin install`).
+- **Copilot generator variant:** the generator emits Claude format only; the Copilot adapter would be the
+  same mechanical translation (camelCase events, root `hooks.json`, `copilot` CLI in the script), but its
+  E2E cannot be hermetic (C1).

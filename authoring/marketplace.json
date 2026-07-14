@@ -1,0 +1,5 @@
+{
+  "name": "poc-config",
+  "owner": { "name": "goeselt" },
+  "metadata": { "description": "Spike: marketplace generated from plugin-config.json (dependencies via hooks)." }
+}

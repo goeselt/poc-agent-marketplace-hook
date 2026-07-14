@@ -1,0 +1,14 @@
+{
+  "name": "dep-a",
+  "version": "0.1.0",
+  "description": "Depends on dep-b (own marketplace) and hook-c (external marketplace).",
+  "author": { "name": "goeselt" },
+  "dependencies": [
+    { "plugin": "dep-b" },
+    {
+      "plugin": "hook-c",
+      "marketplace": "poc-hook",
+      "source": "goeselt/poc-agent-marketplace-hook#claude"
+    }
+  ]
+}

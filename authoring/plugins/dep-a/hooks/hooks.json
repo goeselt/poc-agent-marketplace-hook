@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo authored-hook-fired > \"${POC_MARKER_DIR:-/tmp}/dep-a.authored\""
+          }
+        ]
+      }
+    ]
+  }
+}
