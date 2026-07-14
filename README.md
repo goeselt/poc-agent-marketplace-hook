@@ -121,6 +121,36 @@ Both levers that exist on Claude are **absent** on Copilot (1.0.69):
 Copilot hooks are **side-effect-only**: they can check, install, and log (e.g. into
 `COPILOT_PLUGIN_DATA`), but cannot inform the session or gate it.
 
+## Findings (Git-Source Marketplaces)
+
+Verified against this repository's own `claude` and `copilot` branches (each branch root is one marketplace,
+the layout a release workflow would publish).
+
+### G1 -- Branch-pinned install works on both Claude forms
+
+`claude plugin marketplace add` accepts the branch as a `#<branch>` fragment on **both** forms:
+`https://github.com/<owner>/<repo>#claude` and the short `<owner>/<repo>#claude`. (The Copilot CLI needs the
+`.git#<branch>` URL form.)
+
+### G2 -- For git sources, the versioned cache is the runtime root
+
+Installed from git, `${CLAUDE_PLUGIN_ROOT}` points into `plugins/cache/<mp>/<plugin>/<version>/` -- the
+opposite of the directory-source behavior (F8). Hooks fire offline once installed, and nested installs
+resolve against the **local marketplace clone as of its last fetch** -- they do not refresh it.
+
+### G3 -- The update pipeline is three explicit steps
+
+After pushing a new plugin version to the marketplace branch:
+
+1. `claude plugin marketplace update <mp>` -- refreshes the local clone; installed plugins are unaffected.
+2. `claude plugin update <plugin>@<mp>` -- materializes the new version into its own cache directory.
+3. Next session -- the new version's hooks/content become active.
+
+Installed plugins stay **version-pinned** across marketplace refreshes, and content changes without a version
+bump never reach git-source consumers (unlike directory sources, F8). A hook automating updates therefore
+needs marketplace update + plugin update, and the detection diff is only as fresh as the last marketplace
+refresh (that step needs network).
+
 ## MCP Servers And Login Checks
 
 ### M1 -- MCP existence: both CLIs, machine-readable
@@ -179,10 +209,10 @@ an authenticated Copilot session and is documented above instead of scripted.
 
 ## Open Questions
 
-- **Git-source marketplaces:** confirm the versioned cache is the runtime root (F8 flip side) and that the
-  update flow behaves like the directory case. Needs the remote repo
-  `github.com/goeselt/poc-agent-marketplace-hook`.
 - **Same-session activation:** no way found to activate a freshly installed plugin without a new session; a
   systematic look at `--resume`/`/clear` semantics (`source` values in F2) might open one.
 - **Copilot enforcement:** no blocking or context mechanism found via exit codes/stdout; if a decision
   protocol (JSON output) exists, it is undocumented -- revisit on newer CLI versions.
+- **External-marketplace dependencies:** installing a dependency from a *different* marketplace requires that
+  marketplace to be registered first; whether `plugin marketplace add <url>` also works nested from a hook is
+  untested (expected yes -- same config-write class as `plugin install`).
