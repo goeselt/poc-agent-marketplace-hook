@@ -1,0 +1,6 @@
+{
+  "name": "hook-mcp",
+  "version": "0.1.0",
+  "description": "Ships MCP servers and a hook that verifies MCP config, reachability, and required env vars.",
+  "author": { "name": "goeselt" }
+}
